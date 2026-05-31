@@ -34,12 +34,32 @@ function formatDateForApi(dateInput: string): string {
   return new Date(`${datePart}T00:00:00.000Z`).toISOString();
 }
 
-export function buildTripFormSubmitValues(
-  values: TripFormValues,
-): TripFormValues {
+function generateSlug(title: string): string {
+  return title
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9а-яё\s-]/gi, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+}
+
+function buildDateLabel(startDate: string, endDate: string): string {
+  if (startDate && endDate) {
+    return `${startDate} — ${endDate}`;
+  }
+
+  return startDate || endDate || '';
+}
+
+export function buildTripFormSubmitValues(values: TripFormValues) {
+  const startDate = values.startDate ? formatDateForApi(values.startDate) : '';
+  const endDate = values.endDate ? formatDateForApi(values.endDate) : '';
+
   return {
     ...values,
-    startDate: values.startDate ? formatDateForApi(values.startDate) : '',
-    endDate: values.endDate ? formatDateForApi(values.endDate) : '',
+    slug: generateSlug(values.title),
+    date: buildDateLabel(startDate, endDate),
+    startDate,
+    endDate,
   };
 }

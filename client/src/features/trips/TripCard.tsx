@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { Card } from '../../shared/ui/Card';
 import type { Trip } from '../../shared/api';
+import { formatTripDateRange} from './TripDates';
 
 type TripCardProps = {
   trip: Trip;
@@ -122,12 +123,11 @@ export function TripCard({ trip, variant = 'private' }: TripCardProps) {
   </Typography>
 )}
 
-{trip.date && (
+{formatTripDateRange(trip) && (
   <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-    {trip.date}
+    {formatTripDateRange(trip)}
   </Typography>
 )}
-
       {trip.description && (
         <Typography variant="body2"
         color="text.secondary"
