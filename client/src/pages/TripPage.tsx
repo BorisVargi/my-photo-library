@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Alert, Box, Button, Chip, Typography, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { Alert, Box, Button, Chip, Paper, Typography, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { deletePhoto, getTripById, setPhotoAsCover } from '../shared/api';
 import type { Trip } from '../shared/api';
@@ -153,7 +153,6 @@ export function TripPage() {
 
         const coverPhoto = data.trip.photos?.find((photo) => photo.isCover) ?? null;
         setCoverPhoto(coverPhoto);
-      
         setPhotos(data.trip.photos ?? []);
       })
       .catch(() => {
@@ -164,173 +163,233 @@ export function TripPage() {
       });
   }, [id]);
 
+  if (!id) {
+    return (
+      <Page>
+        <Alert severity="error">Не указан id поездки</Alert>
+      </Page>
+    );
+  }
+
+  if (loading) {
+    return (
+      <Page>
+        <Loader />
+      </Page>
+    );
+  }
+
+  if (error) {
+    return (
+      <Page>
+        <Alert severity="error">{error}</Alert>
+      </Page>
+    );
+  }
+
+  if (!trip) {
+    return (
+      <Page>
+        <Alert severity="warning">Поездка не найдена</Alert>
+      </Page>
+    );
+  }
+
   const hasCover = Boolean(coverPhoto?.url);
+  const description =
+  trip.description || trip.publicDescription || 'Описание этой поездки пока не добавлено.';
+const tripDates = formatTripDateRange(trip);
+const photosCountText = `${photos.length} фото`;
 
-  return (
-    <Page title="Поездка">
-      {!id && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          Не указан id поездки
-        </Alert>
-      )}
-      {loading && <Loader />}
-
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
-
-      {!loading && !error && trip && (
-        <Box>
-          {hasCover && (
-            <Box
-              component="img"
-              src={coverPhoto!.url}
-              alt={trip.title}
-              sx={{
-                display: 'block',
-                width: '100%',
-                height: 260,
-                objectFit: 'cover',
-                borderRadius: 3,
-                mb: 3,
-              }}
-            />
-          )}
-
-          {/* <Box
+return (
+  <Page>
+    <Box>
+      <Paper
+        sx={{
+          position: 'relative',
+          minHeight: { xs: 360, md: 460 },
+          borderRadius: 4,
+          overflow: 'hidden',
+          mb: 3,
+          backgroundImage: hasCover
+            ? `linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.65)), url(${coverPhoto!.url})`
+            : 'linear-gradient(135deg, #263238, #607d8b)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          display: 'flex',
+          alignItems: 'flex-end',
+        }}
+      >
+        <Box
+          sx={{
+            p: { xs: 3, md: 5 },
+            color: 'common.white',
+            width: '100%',
+          }}
+        >
+          <Box
             sx={{
               display: 'flex',
-              alignItems: 'flex-start',
               justifyContent: 'space-between',
+              alignItems: { xs: 'flex-start', sm: 'flex-end' },
               gap: 2,
-              mb: 2,
+              flexDirection: { xs: 'column', sm: 'row' },
             }}
-          > */}
-          <Box
-  sx={{
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: { xs: 'flex-start', sm: 'center' },
-    gap: 2,
-    mb: 3,
-  }}
->
-  <Box>
-    <Typography variant="h3" component="h1" sx={{ fontWeight: 800, mb: 1 }}>
-      {trip.title}
-    </Typography>
+          >
+            <Box sx={{ maxWidth: 900 }}>
+              <Typography
+                variant="h2"
+                component="h1"
+                sx={{
+                  fontWeight: 800,
+                  fontSize: { xs: 36, md: 56 },
+                  lineHeight: 1.05,
+                  mb: 2,
+                }}
+              >
+                {trip.title}
+              </Typography>
 
-    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-      <Chip size="small" label={VISIBILITY_LABELS[trip.visibility]} />
-      <Chip
-        size="small"
-        label={STATUS_LABELS[trip.status]}
-        variant="outlined"
-      />
-    </Box>
-  </Box>
+              {tripDates && (
+                <Typography
+                  sx={{
+                    fontSize: { xs: 16, md: 20 },
+                    opacity: 0.9,
+                    mb: 1,
+                  }}
+                >
+                  🗓 {tripDates}
+                </Typography>
+              )}
 
-  <Button
-    component={RouterLink}
-    to={`/trips/${trip.id}/edit`}
-    variant="outlined"
-    sx={{ flexShrink: 0 }}
-  >
-    Редактировать
-  </Button>
-</Box>
+              {trip.routeSummary && (
+                <Typography
+                  sx={{
+                    fontSize: { xs: 16, md: 20 },
+                    opacity: 0.9,
+                    mb: 1,
+                  }}
+                >
+                  📍 {trip.routeSummary}
+                </Typography>
+              )}
 
-<Box sx={{ mb: 4, maxWidth: 820 }}>
-  {trip.country && (
-    <Typography variant="h5" component="p" sx={{ fontWeight: 700, mb: 1 }}>
-      {trip.country}
-    </Typography>
-  )}
+              <Typography
+                sx={{
+                  fontSize: { xs: 15, md: 18 },
+                  opacity: 0.85,
+                }}
+              >
+                📷 {photosCountText}
+              </Typography>
+            </Box>
 
-  {trip.routeSummary && (
-    <Typography
-      variant="h6"
-      component="p"
-      color="text.secondary"
-      sx={{ mb: 1.5, lineHeight: 1.5 }}
-    >
-      📍 {trip.routeSummary}
-    </Typography>
-  )}
-
-  {formatTripDateRange(trip) && (
-    <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-      🗓 {formatTripDateRange(trip)}
-    </Typography>
-  )}
-
-  {trip.description && (
-    <Typography variant="body1" sx={{ lineHeight: 1.8, fontSize: '1.05rem' }}>
-      {trip.description}
-    </Typography>
-  )}
-</Box>
-
-<Box
-  sx={{
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 2,
-    mb: 2,
-  }}
->
-  <Typography variant="h5" component="h2" sx={{ fontWeight: 700 }}>
-    Фотографии
-  </Typography>
-</Box>  
-
-          <Accordion sx={{ mb: 3 }}>
-  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-    <Typography variant="h6">
-      Загрузить фотографии
-    </Typography>
-  </AccordionSummary>
-
-  <AccordionDetails>
-    <PhotoUploadForm tripId={trip.id} existingPhotos={photos} onCreated={handlePhotoCreated} />
-  </AccordionDetails>
-</Accordion>
-
-          <PhotoGrid
-            photos={photos}
-            onPhotoClick={handlePhotoClick}
-            onSetCover={handleSetCover}
-            onDelete={handleDeletePhoto}
-            onEdit={setEditingPhoto}
-          />
-
-          <PhotoLightbox
-            photos={photos}
-            currentIndex={lightboxIndex}
-            open={lightboxOpen}
-            onClose={() => setLightboxOpen(false)}
-            onIndexChange={setLightboxIndex}
-            onSetCover={handleSetCover}
-            onDelete={handleDeletePhoto}
-            onEdit={(photo) => {
-              setEditingPhoto(photo);
-            }}
-          />
-
-          {editingPhoto && (
-            <EditPhotoDialog
-              photo={editingPhoto}
-              open
-              onClose={() => setEditingPhoto(null)}
-              onSaved={handlePhotoSaved}
-            />
-          )}
+            <Button
+              component={RouterLink}
+              to={`/trips/${trip.id}/edit`}
+              variant="contained"
+              sx={{
+                flexShrink: 0,
+                backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                color: 'text.primary',
+                '&:hover': {
+                  backgroundColor: 'common.white',
+                },
+              }}
+            >
+              Редактировать
+            </Button>
+          </Box>
         </Box>
-          )}
-    </Page>
-  )
+      </Paper>
+
+      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 3 }}>
+        <Chip size="small" label={VISIBILITY_LABELS[trip.visibility]} />
+        <Chip
+          size="small"
+          label={STATUS_LABELS[trip.status]}
+          variant="outlined"
+        />
+      </Box>
+
+      {!hasCover && photos.length > 0 && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          У поездки нет обложки. Выберите одну из фотографий как обложку поездки.
+        </Alert>
+      )}
+
+      <Box sx={{ maxWidth: 900, mb: 5 }}>
+        <Typography
+          variant="h5"
+          component="h2"
+          sx={{ fontWeight: 700, mb: 2 }}
+        >
+          О поездке
+        </Typography>
+
+        <Typography
+          color="text.secondary"
+          sx={{
+            fontSize: 18,
+            lineHeight: 1.8,
+            whiteSpace: 'pre-line',
+          }}
+        >
+          {description}
+        </Typography>
+      </Box>
+
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="h5" component="h2" sx={{ fontWeight: 700 }}>
+          Фотографии
+        </Typography>
+      </Box>
+
+      <Accordion sx={{ mb: 3 }}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography variant="h6">Загрузить фотографии</Typography>
+        </AccordionSummary>
+
+        <AccordionDetails>
+          <PhotoUploadForm
+            tripId={trip.id}
+            existingPhotos={photos}
+            onCreated={handlePhotoCreated}
+          />
+        </AccordionDetails>
+      </Accordion>
+
+      <PhotoGrid
+        photos={photos}
+        onPhotoClick={handlePhotoClick}
+        onSetCover={handleSetCover}
+        onDelete={handleDeletePhoto}
+        onEdit={setEditingPhoto}
+      />
+
+      <PhotoLightbox
+        photos={photos}
+        currentIndex={lightboxIndex}
+        open={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        onIndexChange={setLightboxIndex}
+        onSetCover={handleSetCover}
+        onDelete={handleDeletePhoto}
+        onEdit={(photo) => {
+          setEditingPhoto(photo);
+        }}
+      />
+
+      {editingPhoto && (
+        <EditPhotoDialog
+          photo={editingPhoto}
+          open
+          onClose={() => setEditingPhoto(null)}
+          onSaved={handlePhotoSaved}
+        />
+      )}
+    </Box>
+  </Page>
+);
 }
 
