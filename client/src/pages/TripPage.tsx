@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Alert, Box, Button, Chip, Paper, Typography, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -71,6 +71,14 @@ export function TripPage() {
   const [editingPhoto, setEditingPhoto] = useState<Photo | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const galleryRef = useRef<HTMLDivElement | null>(null);
+
+  const scrollToGallery = () => {
+    galleryRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  };
 
   const handlePhotoCreated = (photo: Photo) => {
     setPhotos((prev) => [...prev, photo]);
@@ -313,10 +321,18 @@ return (
       </Box>
 
       {!hasCover && photos.length > 0 && (
-        <Alert severity="info" sx={{ mb: 3 }}>
-          У поездки нет обложки. Выберите одну из фотографий как обложку поездки.
-        </Alert>
-      )}
+  <Alert
+    severity="info"
+    sx={{ mb: 3 }}
+    action={
+      <Button color="inherit" size="small" onClick={scrollToGallery}>
+        Выбрать обложку
+      </Button>
+    }
+  >
+    У поездки нет обложки. Выберите одну из фотографий как обложку поездки.
+  </Alert>
+)}
 
       <Box sx={{ maxWidth: 900, mb: 5 }}>
         <Typography
@@ -339,11 +355,11 @@ return (
         </Typography>
       </Box>
 
-      <Box sx={{ mb: 2 }}>
-        <Typography variant="h5" component="h2" sx={{ fontWeight: 700 }}>
-          Фотографии
-        </Typography>
-      </Box>
+      <Box ref={galleryRef} sx={{ mb: 2 }}>
+  <Typography variant="h5" component="h2" sx={{ fontWeight: 700 }}>
+    Фотографии
+  </Typography>
+</Box>
 
       <Accordion sx={{ mb: 3 }}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
