@@ -178,27 +178,28 @@ export function PhotoUploadForm({ tripId, existingPhotos, onCreated }: PhotoUplo
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError('');
-
+  
     if (fileItems.length === 0) {
       setError('Выбери хотя бы одно фото');
       return;
     }
-
+  
     setIsSubmitting(true);
-
+  
+    const CONCURRENT_UPLOADS_LIMIT = 3;
     let hasFailure = false;
-
+  
     try {
       const signature = await getCloudinaryUploadSignature();
-
-      for (const item of fileItems) {
-        if (item.status === 'uploaded') {
-          continue;
-        }
-
+  
+      const uploadableItems = fileItems.filter(
+        (item) => item.status !== 'uploaded',
+      );
+  
+      async function uploadSingleItem(item: FileUploadItem) {
         if (isDuplicateFile(item.file)) {
           hasFailure = true;
-        
+  
           setFileItems((current) =>
             current.map((currentItem) =>
               currentItem.id === item.id
@@ -210,21 +211,21 @@ export function PhotoUploadForm({ tripId, existingPhotos, onCreated }: PhotoUplo
                 : currentItem,
             ),
           );
-        
-          continue;
+  
+          return;
         }
-
+  
         if (!isImageFile(item.file)) {
           hasFailure = true;
-          continue;
+          return;
         }
-
+  
         updateFileStatus(item.id, 'uploading');
-
+  
         try {
           const secureUrl = await uploadToCloudinary(item.file, signature);
           const thumbnailUrl = getThumbnailUrl(secureUrl);
-
+  
           const { photo } = await createPhoto(tripId, {
             url: secureUrl,
             thumbnailUrl,
@@ -235,11 +236,12 @@ export function PhotoUploadForm({ tripId, existingPhotos, onCreated }: PhotoUplo
             originalFileName: item.file.name,
             fileSize: item.file.size,
           });
-
+  
           onCreated(photo);
           updateFileStatus(item.id, 'uploaded');
         } catch {
           hasFailure = true;
+  
           setFileItems((current) =>
             current.map((currentItem) =>
               currentItem.id === item.id
@@ -249,16 +251,24 @@ export function PhotoUploadForm({ tripId, existingPhotos, onCreated }: PhotoUplo
           );
         }
       }
-
+  
+      for (let index = 0; index < uploadableItems.length; index += CONCURRENT_UPLOADS_LIMIT) {
+        const batch = uploadableItems.slice(
+          index,
+          index + CONCURRENT_UPLOADS_LIMIT,
+        );
+  
+        await Promise.all(batch.map(uploadSingleItem));
+      }
+  
       if (hasFailure) {
         setError('Некоторые фото не удалось загрузить');
       } else {
         clearForm();
       }
     } catch {
-      setError(
-        'Не удалось начать загрузку. Проверьте настройки Cloudinary.',
-      );
+      setError('Не удалось начать загрузку. Проверьте настройки Cloudinary.');
+  
       setFileItems((current) =>
         current.map((item) =>
           item.status === 'uploading' || item.status === 'pending'
