@@ -1,7 +1,7 @@
 import { Box, Typography } from '@mui/material';
 
 type PageProps = {
-  title: string;
+  title?: string;
   subtitle?: string;
   children: React.ReactNode;
 };
@@ -9,18 +9,20 @@ type PageProps = {
 export function Page({ title, subtitle, children }: PageProps) {
   return (
     <Box>
+      {(title || subtitle) && (
       <Box sx={{ mb: 3 }}>
+        {title && (
         <Typography variant="h4" component="h1">
           {title}
         </Typography>
-
+        )}
         {subtitle && (
           <Typography color="text.secondary" sx={{ mt: 1 }}>
             {subtitle}
           </Typography>
         )}
       </Box>
-
+      )}
       {children}
     </Box>
   );
