@@ -230,6 +230,12 @@ export function TripPage() {
   trip.description || trip.publicDescription || 'Описание этой поездки пока не добавлено.';
 const tripDates = formatTripDateRange(trip);
 const photosCountText = `${photos.length} фото`;
+const coverBackgroundPosition =
+  trip.coverPosition === 'top'
+    ? 'center top'
+    : trip.coverPosition === 'bottom'
+      ? 'center bottom'
+      : 'center';
 
 return (
   <Page>
@@ -245,7 +251,7 @@ return (
             ? `linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.65)), url(${coverPhoto!.url})`
             : 'linear-gradient(135deg, #263238, #607d8b)',
           backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          backgroundPosition: coverBackgroundPosition,
           display: 'flex',
           alignItems: 'flex-end',
         }}
@@ -286,7 +292,6 @@ return (
                     fontSize: { xs: 16, md: 20 },
                     opacity: 0.9,
                     mb: 1,
-                    // whiteSpace: 'nowrap',
                   }}
                 >
                   🗓 {tripDates}

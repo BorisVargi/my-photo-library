@@ -16,6 +16,7 @@ export const createTripSchema = z.object({
 
   visibility: z.enum(VISIBILITY_VALUES).optional(),
   status: z.enum(STATUS_VALUES).optional(),
+  coverPosition: z.enum(['top', 'center', 'bottom']).optional(),
 });
 
 export const updateTripSchema = createTripSchema

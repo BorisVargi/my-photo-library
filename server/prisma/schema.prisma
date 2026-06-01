@@ -48,6 +48,8 @@ model Trip {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  coverPosition String @default("center")
+
   photos Photo[]
 }
 

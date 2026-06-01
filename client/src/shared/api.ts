@@ -7,6 +7,7 @@ export type Trip = {
   slug: string;
   visibility: 'private' | 'public';
   status: 'draft' | 'published';
+  coverPosition?: 'top' | 'center' | 'bottom';
   startDate?: string;
   endDate?: string;
   publicDescription?: string;

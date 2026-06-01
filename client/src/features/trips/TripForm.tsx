@@ -20,6 +20,7 @@ export type TripFormValues = {
   publicDescription: string;
   visibility: Trip['visibility'];
   status: Trip['status'];
+  coverPosition: 'top' | 'center' | 'bottom';
 };
 
 type TripFormProps = {
@@ -38,6 +39,7 @@ const defaultValues: TripFormValues = {
   publicDescription: '',
   visibility: 'private',
   status: 'draft',
+  coverPosition: 'center',
 };
 
 export function TripForm({
@@ -256,6 +258,23 @@ export function TripForm({
               <MenuItem value="draft">Черновик</MenuItem>
               <MenuItem value="published">Опубликована</MenuItem>
             </TextField>
+            <TextField
+  select
+  label="Положение обложки"
+  value={values.coverPosition}
+  onChange={(event) =>
+    updateField(
+      'coverPosition',
+      event.target.value as 'top' | 'center' | 'bottom'
+    )
+  }
+  fullWidth
+  helperText="Какая часть фото будет видна в обложке"
+>
+  <MenuItem value="top">Верх</MenuItem>
+  <MenuItem value="center">Центр</MenuItem>
+  <MenuItem value="bottom">Низ</MenuItem>
+</TextField>
           </Box>
         </Box>
   
