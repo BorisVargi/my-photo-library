@@ -16,6 +16,9 @@ export type Trip = {
   createdAt: string;
   updatedAt: string;
   photos?: Photo[];
+  _count?: {
+    photos: number;
+  };
 };
 
 export type TripFormValues = {

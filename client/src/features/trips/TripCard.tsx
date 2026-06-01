@@ -12,10 +12,9 @@ type TripCardProps = {
 
 export function TripCard({ trip, variant = 'private' }: TripCardProps) {
   const navigate = useNavigate();
-  
   const coverPhoto = trip.photos?.[0];
-
   const cardCoverSrc = coverPhoto?.thumbnailUrl || coverPhoto?.url;
+  const photosCount = trip._count?.photos ?? trip.photos?.length ?? 0;
 
   const tripUrl =
     variant === 'public'
@@ -32,8 +31,7 @@ export function TripCard({ trip, variant = 'private' }: TripCardProps) {
   
   const statusMap: Record<string, string> = {
     draft: 'Черновик',
-    active: 'Активная',
-    completed: 'Завершена',
+    published: 'Опубликована',
   };
   return (
     <Card
@@ -104,10 +102,19 @@ export function TripCard({ trip, variant = 'private' }: TripCardProps) {
 )}
 </Box>
       
-      <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
-        <Chip size="small" label={visibilityMap[trip.visibility] || trip.visibility} />
-        <Chip size="small" label={statusMap[trip.status] || trip.status} variant="outlined" />
-      </Box>
+{variant === 'private' && (
+  <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
+    <Chip
+      size="small"
+      label={visibilityMap[trip.visibility] || trip.visibility}
+    />
+    <Chip
+      size="small"
+      label={statusMap[trip.status] || trip.status}
+      variant="outlined"
+    />
+  </Box>
+)}
 
       <Typography variant="overline" color="text.secondary">
   {trip.country || 'Без страны'}
@@ -117,17 +124,17 @@ export function TripCard({ trip, variant = 'private' }: TripCardProps) {
   {trip.title}
 </Typography>
 
-{trip.routeSummary && (
-  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-    {trip.routeSummary}
-  </Typography>
-)}
 
 {formatTripDateRange(trip) && (
   <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
     {formatTripDateRange(trip)}
   </Typography>
 )}
+
+<Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+  📷 {photosCount} фото
+</Typography>
+
       {trip.description && (
         <Typography variant="body2"
         color="text.secondary"

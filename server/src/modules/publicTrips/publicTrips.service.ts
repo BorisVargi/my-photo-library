@@ -17,6 +17,15 @@ export async function getPublicTrips() {
         },
         take: 1,
       },
+      _count: {
+        select: {
+          photos: {
+            where: {
+              visibility: 'public',
+            },
+          },
+        },
+      },
     },
   });
 }

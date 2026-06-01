@@ -13,9 +13,13 @@ export async function getAllTrips(userId: string) {
         },
         take: 1,
       },
-    },
-  });
-}
+      _count: {
+        select: {
+          photos: true,
+        },
+      },
+      },
+    })}
 
 export const getTripById = async (id: string, userId: string) => {
   return prisma.trip.findFirst({
