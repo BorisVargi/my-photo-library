@@ -61,5 +61,6 @@ export function buildTripFormSubmitValues(values: TripFormValues) {
     date: buildDateLabel(startDate, endDate),
     startDate,
     endDate,
+    publicDescription: values.description,
   };
 }

@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
-import { getAllTrips, getTripById, createTrip, updateTrip, deleteTrip   } from './trips.service';
+import { getAllTrips, getTripById, createTrip, updateTrip, deleteTrip, getTripOwnerVisibility, makeTripPhotosPublic   } from './trips.service';
 import { createTripSchema, updateTripSchema } from './trips.schemas';
 
 export const getTrips = async (req: Request, res: Response, next: NextFunction) => {
@@ -83,7 +83,19 @@ export const updateTripController = async (req: Request, res: Response, next: Ne
 
     const userId = req.user.userId;
     const parsedBody = updateTripSchema.parse(req.body);
+    const currentTrip = await getTripOwnerVisibility(id, userId);
+    if (!currentTrip) {
+      return res.status(404).json({ message: 'Trip not found' });
+    }
+    
+    const shouldMakePhotosPublic =
+      parsedBody.visibility === 'public' && currentTrip.visibility !== 'public';
+    
     const trip = await updateTrip(id, userId, parsedBody);
+    
+    if (shouldMakePhotosPublic) {
+      await makeTripPhotosPublic(id);
+    }
 
     return res.json({ trip });
   } catch (error) {

@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Alert, Box, Button, Chip, Paper, Typography, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { deletePhoto, getTripById, setPhotoAsCover } from '../shared/api';
+import { deletePhoto, getTripById, deleteTrip, setPhotoAsCover } from '../shared/api';
 import type { Trip } from '../shared/api';
 import type {Photo} from '../shared/api';
 import { PhotoGrid } from '../features/photos/PhotoGrid';
@@ -11,11 +11,10 @@ import { EditPhotoDialog } from '../features/photos/EditPhotoDialog';
 import { PhotoUploadForm } from '../features/photos/PhotoUploadForm';
 import { Page } from '../shared/ui/Page';
 import { Loader } from '../shared/ui/Loader';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 const VISIBILITY_LABELS: Record<Trip['visibility'], string> = {
   private: 'Приватная',
-  unlisted: 'По ссылке',
   public: 'Публичная',
 };
 
@@ -39,7 +38,7 @@ function formatJournalDate(value?: string): string | null {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
-  });
+  })  
 }
 
 function formatTripDateRange(trip: Trip): string | null {
@@ -63,6 +62,7 @@ function formatTripDateRange(trip: Trip): string | null {
 
 export function TripPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [coverPhoto, setCoverPhoto] = useState<Photo | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -147,6 +147,28 @@ export function TripPage() {
       setCoverPhoto(data.photo);
     } catch (error) {
       console.error('Failed to set cover photo', error);
+    }
+  };
+
+  const handleDeleteTrip = async () => {
+    if (!trip) {
+      return;
+    }
+  
+    const confirmed = window.confirm(
+      'Удалить поездку и все её фотографии? Это действие нельзя отменить.',
+    );
+  
+    if (!confirmed) {
+      return;
+    }
+  
+    try {
+      await deleteTrip(trip.id);
+  
+      navigate('/trips');
+    } catch (error) {
+      console.error('Failed to delete trip', error);
     }
   };
   
@@ -264,6 +286,7 @@ return (
                     fontSize: { xs: 16, md: 20 },
                     opacity: 0.9,
                     mb: 1,
+                    // whiteSpace: 'nowrap',
                   }}
                 >
                   🗓 {tripDates}
@@ -292,21 +315,63 @@ return (
               </Typography>
             </Box>
 
-            <Button
-              component={RouterLink}
-              to={`/trips/${trip.id}/edit`}
-              variant="contained"
-              sx={{
-                flexShrink: 0,
-                backgroundColor: 'rgba(255, 255, 255, 0.92)',
-                color: 'text.primary',
-                '&:hover': {
-                  backgroundColor: 'common.white',
-                },
-              }}
-            >
-              Редактировать
-            </Button>
+            <Box
+  sx={{
+    display: 'flex',
+    gap: 1,
+    flexShrink: 0,
+    flexWrap: 'wrap',
+  }}
+>
+  <Button
+    component={RouterLink}
+    to={`/trips/${trip.id}/edit`}
+    variant="contained"
+    sx={{
+      backgroundColor: 'rgba(255, 255, 255, 0.92)',
+      color: 'text.primary',
+      '&:hover': {
+        backgroundColor: 'common.white',
+      },
+    }}
+  >
+    Редактировать
+  </Button>
+
+  {trip.visibility === 'public' && (
+  <Button
+    component={RouterLink}
+    to={`/public-trips/${trip.slug}`}
+    variant="outlined"
+    sx={{
+      borderColor: 'rgba(255, 255, 255, 0.7)',
+      color: 'common.white',
+      '&:hover': {
+        borderColor: 'common.white',
+        backgroundColor: 'rgba(255, 255, 255, 0.12)',
+      },
+    }}
+  >
+    Открыть поездку
+  </Button>
+)}
+
+  <Button
+    variant="outlined"
+    color="error"
+    onClick={handleDeleteTrip}
+    sx={{
+      borderColor: 'rgba(255, 255, 255, 0.7)',
+      color: 'common.white',
+      '&:hover': {
+        borderColor: 'common.white',
+        backgroundColor: 'rgba(211, 47, 47, 0.18)',
+      },
+    }}
+  >
+    Удалить
+  </Button>
+</Box>
           </Box>
         </Box>
       </Paper>
@@ -333,6 +398,18 @@ return (
     У поездки нет обложки. Выберите одну из фотографий как обложку поездки.
   </Alert>
 )}
+
+{trip.status === 'published' && photos.length === 0 && (
+  <Alert severity="warning" sx={{ mb: 3 }}>
+    Поездка опубликована, но в ней пока нет фотографий.
+  </Alert>
+)}
+
+{/* {trip.status === 'published' && !hasCover && photos.length > 0 && (
+  <Alert severity="warning" sx={{ mb: 3 }}>
+    Поездка опубликована, но у неё нет обложки.
+  </Alert>
+)} */}
 
       <Box sx={{ maxWidth: 900, mb: 5 }}>
         <Typography

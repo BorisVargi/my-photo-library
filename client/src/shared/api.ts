@@ -5,7 +5,7 @@ export type Trip = {
   title: string;
   date: string;
   slug: string;
-  visibility: 'private' | 'unlisted' | 'public';
+  visibility: 'private' | 'public';
   status: 'draft' | 'published';
   startDate?: string;
   endDate?: string;
@@ -37,7 +37,7 @@ export type Photo = {
   thumbnailUrl?: string;
   title?: string;
   caption?: string;
-  visibility: 'private' | 'unlisted' | 'public';
+  visibility: 'private'  | 'public';
   isCover?: boolean;
   takenAt?: string;
   createdAt: string;

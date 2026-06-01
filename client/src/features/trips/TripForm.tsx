@@ -5,6 +5,7 @@ import {
   Button,
   MenuItem,
   TextField,
+  Typography
 } from '@mui/material';
 import type { Trip } from '../../shared/api';
 import { buildTripFormSubmitValues } from './tripFormDates';
@@ -66,7 +67,16 @@ export function TripForm({
     setError('');
     setIsSubmitting(true);
 
+
     try {
+      if (
+        values.startDate &&
+        values.endDate &&
+        new Date(values.endDate) < new Date(values.startDate)
+      ) {
+        setError('Дата окончания не может быть раньше даты начала');
+        return;
+      }
       await onSubmit(buildTripFormSubmitValues(values));
     } catch (err) {
       const message =
@@ -86,106 +96,169 @@ export function TripForm({
           {error}
         </Alert>
       )}
-
-      <Box sx={{ display: 'grid', gap: 2 }}>
-        <TextField
-          label="Название поездки"
-          value={values.title}
-          onChange={(event) => updateField('title', event.target.value)}
-          required
-          fullWidth
-        />
-
-        <TextField
-          label="Страна"
-          value={values.country}
-          onChange={(event) => updateField('country', event.target.value)}
-          fullWidth
-        />
-
-        <TextField
-          label="Маршрут"
-          value={values.routeSummary}
-          onChange={(event) => updateField('routeSummary', event.target.value)}
-          placeholder="Например: Madrid → Galicia → Bilbao"
-          fullWidth
-        />
-
-        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-          <TextField
-            label="Дата начала"
-            type="date"
-            value={values.startDate}
-            onChange={(event) => updateField('startDate', event.target.value)}
-            slotProps={{
-              inputLabel: {
-                shrink: true,
-              },
-            }}
-            fullWidth
-          />
-
-          <TextField
-            label="Дата окончания"
-            type="date"
-            value={values.endDate}
-            onChange={(event) => updateField('endDate', event.target.value)}
-            slotProps={{
-              inputLabel: {
-                shrink: true,
-              },
-            }}
-            fullWidth
-          />
+  
+      <Box sx={{ display: 'grid', gap: 3 }}>
+        <Box>
+          <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+            Основное
+          </Typography>
+  
+          <Box sx={{ display: 'grid', gap: 2 }}>
+            <TextField
+              label="Название поездки"
+              value={values.title}
+              onChange={(event) => updateField('title', event.target.value)}
+              placeholder="Например: Italy May 2024"
+              helperText="Название будет видно в списке поездок и на публичной странице."
+              required
+              fullWidth
+            />
+  
+            <TextField
+              label="Страна"
+              value={values.country}
+              onChange={(event) => updateField('country', event.target.value)}
+              placeholder="Например: Италия"
+              fullWidth
+            />
+          </Box>
         </Box>
-
-        <TextField
-          label="Внутреннее описание"
-          value={values.description}
-          onChange={(event) => updateField('description', event.target.value)}
-          multiline
-          minRows={3}
-          fullWidth
-        />
-
-        <TextField
-          label="Публичное описание"
-          value={values.publicDescription}
-          onChange={(event) => updateField('publicDescription', event.target.value)}
-          multiline
-          minRows={3}
-          fullWidth
-        />
-
-        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-          <TextField
-            select
-            label="Видимость"
-            value={values.visibility}
-            onChange={(event) =>
-              updateField('visibility', event.target.value as Trip['visibility'])
-            }
-            fullWidth
-          >
-            <MenuItem value="private">Private</MenuItem>
-            <MenuItem value="unlisted">Unlisted</MenuItem>
-            <MenuItem value="public">Public</MenuItem>
-          </TextField>
-
-          <TextField
-            select
-            label="Статус"
-            value={values.status}
-            onChange={(event) =>
-              updateField('status', event.target.value as Trip['status'])
-            }
-            fullWidth
-          >
-            <MenuItem value="draft">Draft</MenuItem>
-            <MenuItem value="published">Published</MenuItem>
-          </TextField>
+  
+        <Box>
+          <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+            Даты и маршрут
+          </Typography>
+  
+          <Box sx={{ display: 'grid', gap: 2 }}>
+            <TextField
+              label="Маршрут"
+              value={values.routeSummary}
+              onChange={(event) => updateField('routeSummary', event.target.value)}
+              placeholder="Например: Rome → Florence → Venice"
+              helperText="Коротко опиши маршрут — он будет показан в hero-блоке поездки."
+              fullWidth
+            />
+  
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                gap: 2,
+              }}
+            >
+              <TextField
+                label="Дата начала"
+                type="date"
+                value={values.startDate}
+                onChange={(event) => updateField('startDate', event.target.value)}
+                slotProps={{
+                  inputLabel: {
+                    shrink: true,
+                  },
+                }}
+                fullWidth
+              />
+  
+              <TextField
+                label="Дата окончания"
+                type="date"
+                value={values.endDate}
+                onChange={(event) => updateField('endDate', event.target.value)}
+                slotProps={{
+                  inputLabel: {
+                    shrink: true,
+                  },
+                }}
+                fullWidth
+              />
+            </Box>
+          </Box>
         </Box>
-
+  
+        <Box>
+          <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+            Описания
+          </Typography>
+  
+          <Box sx={{ display: 'grid', gap: 2 }}>
+          <TextField
+  label="Описание поездки"
+  value={values.description}
+  onChange={(event) => updateField('description', event.target.value)}
+  multiline
+  minRows={4}
+  helperText="Этот текст будет показан в карточке поездки и на странице поездки."
+  fullWidth
+/>
+            {/* <TextField
+              label="Внутреннее описание"
+              value={values.description}
+              onChange={(event) => updateField('description', event.target.value)}
+              multiline
+              minRows={3}
+              helperText="Для себя: заметки, детали маршрута, планы, воспоминания."
+              fullWidth
+            /> */}
+  
+            {/* <TextField
+              label="Публичное описание"
+              value={values.publicDescription}
+              onChange={(event) =>
+                updateField('publicDescription', event.target.value)
+              }
+              multiline
+              minRows={3}
+              helperText="Этот текст можно показывать на публичной странице поездки."
+              fullWidth
+            /> */}
+          </Box>
+        </Box>
+  
+        <Box>
+          <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+            Публикация
+          </Typography>
+  
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+              gap: 2,
+            }}
+          >
+            <Alert severity="info">
+  Черновик не показывается публично. Чтобы поездка появилась на публичной странице, выберите «Опубликована» и подходящую видимость.
+</Alert>
+            <TextField
+              select
+              label="Видимость"
+              value={values.visibility}
+              onChange={(event) =>
+                updateField('visibility', event.target.value as Trip['visibility'])
+              }
+              helperText="Приватная — только для вас. По ссылке — доступна по URL. Публичная — видна в публичном списке."
+              fullWidth
+            >
+              <MenuItem value="private">Приватная</MenuItem>
+              <MenuItem value="public">Публичная</MenuItem>
+            </TextField>
+  
+            <TextField
+              select
+              label="Статус"
+              value={values.status}
+              onChange={(event) =>
+                updateField('status', event.target.value as Trip['status'])
+              }
+              helperText="Черновик не считается готовой поездкой. Опубликована — можно показывать публично."
+              fullWidth
+            >
+              <MenuItem value="draft">Черновик</MenuItem>
+              <MenuItem value="published">Опубликована</MenuItem>
+            </TextField>
+          </Box>
+        </Box>
+  
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
           <Button type="submit" variant="contained" disabled={isSubmitting}>
             {isSubmitting ? 'Сохраняем...' : submitText}

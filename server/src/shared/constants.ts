@@ -1,6 +1,5 @@
 export const VISIBILITY_VALUES = [
   'private',
-  'unlisted',
   'public',
 ] as const;
 

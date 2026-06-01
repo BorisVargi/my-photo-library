@@ -51,6 +51,25 @@ export async function updateTrip(
   });
 }
 
+export async function getTripOwnerVisibility(id: string, userId: string) {
+  return prisma.trip.findFirst({
+    where: { id, userId },
+    select: {
+      id: true,
+      visibility: true,
+    },
+  });
+}
+
+export async function makeTripPhotosPublic(tripId: string) {
+  return prisma.photo.updateMany({
+    where: { tripId },
+    data: {
+      visibility: 'public',
+    },
+  });
+}
+
 export async function deleteTrip(id: string,userId: string) {
   return prisma.trip.deleteMany({
     where: { id, userId},

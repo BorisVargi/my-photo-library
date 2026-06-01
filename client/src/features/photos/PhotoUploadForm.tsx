@@ -374,7 +374,6 @@ export function PhotoUploadForm({ tripId, existingPhotos, onCreated }: PhotoUplo
           fullWidth
         >
           <MenuItem value="private">Private</MenuItem>
-          <MenuItem value="unlisted">Unlisted</MenuItem>
           <MenuItem value="public">Public</MenuItem>
         </TextField>
 

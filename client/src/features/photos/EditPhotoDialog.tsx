@@ -113,7 +113,6 @@ export function EditPhotoDialog({
             fullWidth
           >
             <MenuItem value="private">Private</MenuItem>
-            <MenuItem value="unlisted">Unlisted</MenuItem>
             <MenuItem value="public">Public</MenuItem>
           </TextField>
 

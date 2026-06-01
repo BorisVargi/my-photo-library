@@ -5,7 +5,7 @@ export const createPhotoSchema = z.object({
   thumbnailUrl: z.string().optional(),
   title: z.string().optional(),
   caption: z.string().optional(),
-  visibility: z.enum(['private', 'unlisted', 'public']).optional(),
+  visibility: z.enum(['private', 'public']),
   isCover: z.boolean().optional(),
   takenAt: z.string().optional(),
   originalFileName: z.string().optional(),

@@ -49,7 +49,7 @@ async function seed() {
       routeSummary: 'Rome',
       startDate: new Date('2026-04-12'),
       endDate: new Date('2026-04-20'),
-      visibility: 'unlisted',
+      visibility: 'public',
       status: 'published',
       userId: admin.id,
     },
@@ -108,7 +108,7 @@ async function seed() {
         thumbnailUrl:
           'https://images.unsplash.com/photo-1533676802871-eca1ae998cd5?auto=format&fit=crop&w=400&q=80',
         caption: 'Quiet Trastevere street',
-        visibility: 'unlisted',
+        visibility: 'public',
         isCover: false,
       },
       {
