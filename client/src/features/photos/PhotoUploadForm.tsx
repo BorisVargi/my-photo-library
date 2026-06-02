@@ -16,6 +16,8 @@ import {
   getCloudinaryUploadSignature,
 } from '../../shared/api';
 import type { Photo } from '../../shared/api';
+import heic2any from 'heic2any';
+import imageCompression from 'browser-image-compression';
 
 type PhotoUploadFormProps = {
   tripId: string;
@@ -65,8 +67,74 @@ function formatFileSizeMb(bytes: number): string {
   return (bytes / (1024 * 1024)).toFixed(2);
 }
 
-function isImageFile(file: File): boolean {
-  return file.type.startsWith('image/');
+function isHeicFile(file: File): boolean {
+  const fileName = file.name.toLowerCase();
+
+  return fileName.endsWith('.heic') || fileName.endsWith('.heif');
+}
+
+async function convertHeicToJpeg(file: File): Promise<File> {
+  const convertedBlob = await heic2any({
+    blob: file,
+    toType: 'image/jpeg',
+    quality: 0.9,
+  });
+
+  const blob = Array.isArray(convertedBlob)
+    ? convertedBlob[0]
+    : convertedBlob;
+
+  return new File(
+    [blob],
+    file.name.replace(/\.(heic|heif)$/i, '.jpg'),
+    {
+      type: 'image/jpeg',
+      lastModified: file.lastModified,
+    },
+  );
+}
+
+async function compressImage(file: File): Promise<File> {
+  if (file.size < 1024 * 1024) {
+    return file;
+  }
+
+  return imageCompression(file, {
+    maxSizeMB: 1.5,
+    maxWidthOrHeight: 3000,
+    useWebWorker: true,
+  });
+}
+
+async function prepareFileForUpload(file: File): Promise<File> {
+  let processedFile = file;
+  if (isHeicFile(processedFile)) {
+    processedFile = await convertHeicToJpeg(processedFile);
+  }
+  processedFile = await compressImage(processedFile);
+
+  const originalSize = (file.size / 1024 / 1024).toFixed(2);
+const compressedSize = (
+  processedFile.size /
+  1024 /
+  1024
+).toFixed(2);
+
+console.log(
+  `${file.name}: ${originalSize} MB → ${compressedSize} MB`
+);
+  return processedFile;
+}
+
+
+function isImageFile(file: File) {
+  const fileName = file.name.toLowerCase();
+
+  return (
+    file.type.startsWith('image/') ||
+    fileName.endsWith('.heic') ||
+    fileName.endsWith('.heif')
+  );
 }
 
 function getItemStatusLabel(item: FileUploadItem): string {
@@ -139,12 +207,15 @@ export function PhotoUploadForm({ tripId, existingPhotos, onCreated }: PhotoUplo
     selectedFile: File,
     signature: Awaited<ReturnType<typeof getCloudinaryUploadSignature>>,
   ): Promise<string> {
+    const fileForUpload = await prepareFileForUpload(selectedFile);
+  
     const formData = new FormData();
-    formData.append('file', selectedFile);
+    formData.append('file', fileForUpload);
     formData.append('api_key', signature.apiKey);
     formData.append('timestamp', String(signature.timestamp));
     formData.append('signature', signature.signature);
-    formData.append('folder', signature.folder);
+formData.append('folder', signature.folder);
+
 
     const response = await fetch(
       `https://api.cloudinary.com/v1_1/${signature.cloudName}/image/upload`,
@@ -155,6 +226,9 @@ export function PhotoUploadForm({ tripId, existingPhotos, onCreated }: PhotoUplo
     );
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Cloudinary upload failed:', errorText);
+    
       throw new Error('Failed to upload image to Cloudinary');
     }
 
