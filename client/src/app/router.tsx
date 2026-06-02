@@ -9,6 +9,7 @@ import { TripPage } from '../pages/TripPage';
 import { ProtectedRoute } from '../shared/ui/ProtectedRoute';
 import { CreateTripPage } from '../pages/CreateTripPage';
 import { EditTripPage } from '../pages/EditTripPage';
+import { TravelMapPage } from '../pages/TravelMapPage';
 
 export const router = createBrowserRouter([
   {
@@ -53,4 +54,8 @@ export const router = createBrowserRouter([
     path: '/',
     element: <Navigate to="/public-trips" replace />,
   },
+  {
+    path: '/travel-map',
+    element: <TravelMapPage />,
+  }
 ]);
