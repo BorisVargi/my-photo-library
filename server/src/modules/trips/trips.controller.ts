@@ -1,6 +1,22 @@
 import type { NextFunction, Request, Response } from 'express';
-import { getAllTrips, getTripById, createTrip, updateTrip, deleteTrip, getTripOwnerVisibility, makeTripPhotosPublic   } from './trips.service';
-import { createTripSchema, updateTripSchema } from './trips.schemas';
+import {
+  getAllTrips,
+  getTripById,
+  createTrip,
+  updateTrip,
+  deleteTrip,
+  getTripOwnerVisibility,
+  makeTripPhotosPublic,
+  getTripCities,
+  createTripCity,
+  deleteTripCity,
+} from './trips.service';
+
+import {
+  createTripSchema,
+  updateTripSchema,
+  createTripCitySchema,
+} from './trips.schemas';
 
 export const getTrips = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -113,6 +129,72 @@ export const deleteTripController = async (req: Request, res: Response, next: Ne
 
     const userId = req.user.userId;
     await deleteTrip(id, userId);
+
+    return res.status(204).send();
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getTripCitiesController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { tripId } = req.params;
+
+    if (!tripId || Array.isArray(tripId)) {
+      return res.status(400).json({ message: 'Invalid trip id' });
+    }
+
+    const userId = req.user.userId;
+    const cities = await getTripCities(tripId, userId);
+
+    return res.json({ cities });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const createTripCityController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { tripId } = req.params;
+
+    if (!tripId || Array.isArray(tripId)) {
+      return res.status(400).json({ message: 'Invalid trip id' });
+    }
+
+    const userId = req.user.userId;
+    const parsedBody = createTripCitySchema.parse(req.body);
+
+    const city = await createTripCity(tripId, userId, parsedBody);
+
+    return res.status(201).json({ city });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const deleteTripCityController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { cityId } = req.params;
+
+    if (!cityId || Array.isArray(cityId)) {
+      return res.status(400).json({ message: 'Invalid city id' });
+    }
+
+    const userId = req.user.userId;
+
+    await deleteTripCity(cityId, userId);
 
     return res.status(204).send();
   } catch (error) {

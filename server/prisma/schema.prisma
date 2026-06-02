@@ -51,6 +51,8 @@ model Trip {
   coverPosition String @default("center")
 
   photos Photo[]
+
+  cities TripCity[]
 }
 
 model Photo {
@@ -76,4 +78,19 @@ model Photo {
   updatedAt DateTime @updatedAt
 
   trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+}
+
+model TripCity {
+  id        String   @id @default(uuid())
+  tripId    String
+
+  name      String
+  country   String?
+  lat       Float
+  lng       Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
 }

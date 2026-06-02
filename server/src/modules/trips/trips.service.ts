@@ -1,6 +1,10 @@
 import { prisma } from '../../lib/prisma';
 import type { Status, Visibility } from '../../shared/constants';
-import type { CreateTripInput, UpdateTripInput } from './trips.schemas';
+import type {
+  CreateTripInput,
+  UpdateTripInput,
+  CreateTripCityInput,
+} from './trips.schemas';
 
 export async function getAllTrips(userId: string) {
   return prisma.trip.findMany({
@@ -77,5 +81,84 @@ export async function makeTripPhotosPublic(tripId: string) {
 export async function deleteTrip(id: string,userId: string) {
   return prisma.trip.deleteMany({
     where: { id, userId},
+  });
+}
+
+export async function getTripCities(tripId: string, userId: string) {
+  const trip = await prisma.trip.findFirst({
+    where: {
+      id: tripId,
+      userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!trip) {
+    return [];
+  }
+
+  return prisma.tripCity.findMany({
+    where: {
+      tripId,
+    },
+    orderBy: {
+      createdAt: 'asc',
+    },
+  });
+}
+
+export async function createTripCity(
+  tripId: string,
+  userId: string,
+  data: CreateTripCityInput
+) {
+  const trip = await prisma.trip.findFirst({
+    where: {
+      id: tripId,
+      userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!trip) {
+    throw new Error('Trip not found');
+  }
+
+  return prisma.tripCity.create({
+    data: {
+      tripId,
+      name: data.name,
+      country: data.country ?? null,
+      lat: data.lat,
+      lng: data.lng,
+    },
+  });
+}
+
+export async function deleteTripCity(cityId: string, userId: string) {
+  const city = await prisma.tripCity.findFirst({
+    where: {
+      id: cityId,
+      trip: {
+        userId,
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!city) {
+    throw new Error('City not found');
+  }
+
+  return prisma.tripCity.delete({
+    where: {
+      id: cityId,
+    },
   });
 }

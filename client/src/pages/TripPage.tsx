@@ -12,6 +12,7 @@ import { PhotoUploadForm } from '../features/photos/PhotoUploadForm';
 import { Page } from '../shared/ui/Page';
 import { Loader } from '../shared/ui/Loader';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { TripCitiesManager } from '../features/travel-map/TripCitiesManager';
 
 const VISIBILITY_LABELS: Record<Trip['visibility'], string> = {
   private: 'Приватная',
@@ -464,6 +465,8 @@ return (
         onDelete={handleDeletePhoto}
         onEdit={setEditingPhoto}
       />
+
+      <TripCitiesManager tripId={trip.id} />
 
       <PhotoLightbox
         photos={photos}

@@ -50,6 +50,72 @@ export type Photo = {
   fileSize?: number | null;
 };
 
+export type CreateTripPayload = {
+  title: string;
+  country: string;
+  routeSummary: string;
+  startDate: string;
+  endDate: string;
+  description: string;
+  publicDescription: string;
+  visibility: Trip['visibility'];
+  status: Trip['status'];
+};
+
+export type UpdateTripPayload = Partial<CreateTripPayload>;
+
+export type CreatePhotoPayload = {
+  url: string;
+  thumbnailUrl?: string;
+  title?: string;
+  caption?: string;
+  visibility?: Photo['visibility'];
+  isCover?: boolean;
+  takenAt?: string;
+  originalFileName?: string;
+  fileSize?: number;
+};
+
+export type TripCity = {
+  id: string;
+  tripId: string;
+  name: string;
+  country: string | null;
+  lat: number;
+  lng: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CreateTripCityPayload = {
+  name: string;
+  country?: string | null;
+  lat: number;
+  lng: number;
+};
+
+export type TravelMapCity = TripCity & {
+  trip: {
+    id: string;
+    title: string;
+    slug: string;
+    country: string | null;
+  };
+};
+
+export type UpdatePhotoPayload = Partial<CreatePhotoPayload>;
+
+export type CloudinaryUploadSignature = {
+  timestamp: number;
+  signature: string;
+  apiKey: string;
+  cloudName: string;
+  folder: string;
+};
+
+
+
+
 export async function login(email: string, password: string) {
   const response = await fetch(`${API_URL}/auth/login`, {
     method: 'POST',
@@ -58,11 +124,9 @@ export async function login(email: string, password: string) {
     },
     body: JSON.stringify({ email, password }),
   });
-
   if (!response.ok) {
     throw new Error('Login failed');
   }
-
   return response.json() as Promise<{
     message: string;
     token: string;
@@ -74,7 +138,6 @@ export async function login(email: string, password: string) {
   }>;
 }
 
-
 export async function getTrips(): Promise<{ trips: Trip[] }> {
   const token = localStorage.getItem('token');
 
@@ -83,11 +146,9 @@ export async function getTrips(): Promise<{ trips: Trip[] }> {
       Authorization: `Bearer ${token}`,
     },
   });
-
   if (!response.ok) {
     throw new Error('Failed to fetch trips');
   }
-
   return response.json();
 }
 
@@ -142,19 +203,7 @@ export async function getPublicTripBySlug(
   return response.json();
 }
 
-export type CreateTripPayload = {
-  title: string;
-  country: string;
-  routeSummary: string;
-  startDate: string;
-  endDate: string;
-  description: string;
-  publicDescription: string;
-  visibility: Trip['visibility'];
-  status: Trip['status'];
-};
 
-export type UpdateTripPayload = Partial<CreateTripPayload>;
 
 function getAuthHeaders() {
   const token = localStorage.getItem('token');
@@ -236,27 +285,7 @@ export async function deleteTrip(id: string): Promise<void> {
   }
 }
 
-export type CreatePhotoPayload = {
-  url: string;
-  thumbnailUrl?: string;
-  title?: string;
-  caption?: string;
-  visibility?: Photo['visibility'];
-  isCover?: boolean;
-  takenAt?: string;
-  originalFileName?: string;
-  fileSize?: number;
-};
 
-export type UpdatePhotoPayload = Partial<CreatePhotoPayload>;
-
-export type CloudinaryUploadSignature = {
-  timestamp: number;
-  signature: string;
-  apiKey: string;
-  cloudName: string;
-  folder: string;
-};
 
 export async function getCloudinaryUploadSignature(): Promise<CloudinaryUploadSignature> {
   const response = await fetch(`${API_URL}/api/uploads/cloudinary-signature`, {
@@ -330,4 +359,60 @@ export async function deletePhoto(id: string): Promise<void> {
   if (!response.ok) {
     throw new Error('Failed to delete photo');
   }
+}
+
+export async function getTripCities(
+  tripId: string
+): Promise<{ cities: TripCity[] }> {
+  const response = await fetch(`${API_URL}/trips/${tripId}/cities`, {
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch trip cities');
+  }
+
+  return response.json();
+}
+
+export async function createTripCity(
+  tripId: string,
+  payload: CreateTripCityPayload
+): Promise<{ city: TripCity }> {
+  const response = await fetch(`${API_URL}/trips/${tripId}/cities`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to create trip city');
+  }
+
+  return response.json();
+}
+
+export async function deleteTripCity(cityId: string): Promise<void> {
+  const response = await fetch(`${API_URL}/trips/cities/${cityId}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to delete trip city');
+  }
+}
+
+export async function getTravelMapCities(): Promise<{
+  cities: TravelMapCity[];
+}> {
+  const response = await fetch(`${API_URL}/travel-map/cities`, {
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch travel map cities');
+  }
+
+  return response.json();
 }

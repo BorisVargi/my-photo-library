@@ -19,6 +19,13 @@ export const createTripSchema = z.object({
   coverPosition: z.enum(['top', 'center', 'bottom']).optional(),
 });
 
+export const createTripCitySchema = z.object({
+  name: z.string().min(1),
+  country: z.string().optional().nullable(),
+  lat: z.coerce.number(),
+  lng: z.coerce.number(),
+});
+
 export const updateTripSchema = createTripSchema
   .partial()
   .refine(
@@ -28,3 +35,4 @@ export const updateTripSchema = createTripSchema
 
 export type CreateTripInput = z.infer<typeof createTripSchema>;
 export type UpdateTripInput = z.infer<typeof updateTripSchema>;
+export type CreateTripCityInput = z.infer<typeof createTripCitySchema>;
