@@ -19,12 +19,9 @@ export function PublicTripPage() {
 
   useEffect(() => {
     if (!slug) {
-      // setError('Не указан адрес поездки');
       return;
     }
-  
-    // setError('');
-  
+    
     getPublicTripBySlug(slug)
       .then((data) => {
         const publicPhotos = data.trip.photos ?? [];
