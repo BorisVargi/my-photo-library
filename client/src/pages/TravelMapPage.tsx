@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Alert, Box, CircularProgress, Typography } from '@mui/material';
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
-
+import { LatLngBounds } from 'leaflet';
 import {
   getTravelMapCities,
   type TravelMapCity,
@@ -43,6 +43,13 @@ export function TravelMapPage() {
     };
   }, []);
 
+  const bounds =
+  cities.length > 0
+    ? new LatLngBounds(
+        cities.map((city) => [city.lat, city.lng] as [number, number])
+      )
+    : null;
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>
@@ -58,11 +65,14 @@ export function TravelMapPage() {
       {isLoading ? (
         <CircularProgress />
       ) : cities.length ? (
-        <MapContainer
-          center={[40, 20]}
-          zoom={2}
-          style={{ height: '70vh', width: '100%' }}
-        >
+<MapContainer
+  bounds={bounds ?? undefined}
+  boundsOptions={{
+    padding: [60, 60],
+    maxZoom: 6,
+  }}
+  style={{ height: '70vh', width: '100%' }}
+>
           <TileLayer
             attribution='&copy; OpenStreetMap contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
