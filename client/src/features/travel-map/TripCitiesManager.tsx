@@ -16,6 +16,7 @@ import {
   updateTripCity,
   type TripCity,
 } from '../../shared/api';
+import { searchCityCoordinates } from '../../shared/geocoding';
 
 type TripCitiesManagerProps = {
   tripId: string;
@@ -30,6 +31,7 @@ export function TripCitiesManager({ tripId }: TripCitiesManagerProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
+  const [isSearchingCoordinates, setIsSearchingCoordinates] = useState(false);
 
   useEffect(() => {
     let ignore = false;
@@ -99,6 +101,32 @@ export function TripCitiesManager({ tripId }: TripCitiesManagerProps) {
       setError('Не удалось добавить город');
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function handleSearchCoordinates() {
+    if (!name.trim()) {
+      setError('Введите город');
+      return;
+    }
+  
+    try {
+      setError('');
+      setIsSearchingCoordinates(true);
+  
+      const result = await searchCityCoordinates(name, country);
+  
+      if (!result) {
+        setError('Город не найден');
+        return;
+      }
+  
+      setLat(String(result.lat));
+      setLng(String(result.lng));
+    } catch {
+      setError('Не удалось найти координаты');
+    } finally {
+      setIsSearchingCoordinates(false);
     }
   }
 
@@ -216,6 +244,15 @@ export function TripCitiesManager({ tripId }: TripCitiesManagerProps) {
         >
           Добавить
         </Button>
+
+        <Button
+  variant="outlined"
+  onClick={handleSearchCoordinates}
+  disabled={isSearchingCoordinates}
+>
+  Найти координаты
+</Button>
+
       </Stack>
 
       {isLoading ? (

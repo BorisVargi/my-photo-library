@@ -9,10 +9,22 @@ import {
 } from '@mui/material';
 import { MapContainer, Marker, Popup, Polyline, TileLayer, useMap } from 'react-leaflet';
 import { LatLngBounds } from 'leaflet';
+import L from 'leaflet';
 import {
   getTravelMapCities,
   type TravelMapCity,
 } from '../shared/api';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
 
 type MapAutoFitProps = {
   bounds: LatLngBounds | null;

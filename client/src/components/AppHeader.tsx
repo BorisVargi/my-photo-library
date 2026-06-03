@@ -1,5 +1,6 @@
 import { Box, Button, Typography } from '@mui/material';
 import TravelExploreIcon from '@mui/icons-material/TravelExplore';
+import { Link } from 'react-router-dom';
 
 type AppHeaderProps = {
   onLogout: () => void;
@@ -68,9 +69,21 @@ export function AppHeader({ onLogout }: AppHeaderProps) {
         </Typography>
       </Box>
 
-      <Button variant="outlined" onClick={onLogout} sx={{ flexShrink: 0 }}>
-        Выйти
-      </Button>
+      <Box
+  sx={{
+    display: 'flex',
+    gap: 1,
+    flexShrink: 0,
+  }}
+>
+  <Button component={Link} to="/travel-map" variant="outlined">
+    Карта
+  </Button>
+
+  <Button variant="outlined" onClick={onLogout}>
+    Выйти
+  </Button>
+</Box>
     </Box>
   );
 }
