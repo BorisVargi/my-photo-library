@@ -10,12 +10,14 @@ import {
   getTripCities,
   createTripCity,
   deleteTripCity,
+  updateTripCity,
 } from './trips.service';
 
 import {
   createTripSchema,
   updateTripSchema,
   createTripCitySchema,
+  updateTripCitySchema,
 } from './trips.schemas';
 
 export const getTrips = async (req: Request, res: Response, next: NextFunction) => {
@@ -197,6 +199,34 @@ export const deleteTripCityController = async (
     await deleteTripCity(cityId, userId);
 
     return res.status(204).send();
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const updateTripCityController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { cityId } = req.params;
+
+    if (!cityId || Array.isArray(cityId)) {
+      return res.status(400).json({ message: 'Invalid city id' });
+    }
+
+    const userId = req.user.userId;
+
+    const parsedBody = updateTripCitySchema.parse(req.body);
+
+    const city = await updateTripCity(
+      cityId,
+      userId,
+      parsedBody
+    );
+
+    return res.json({ city });
   } catch (error) {
     return next(error);
   }

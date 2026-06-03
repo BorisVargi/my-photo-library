@@ -7,6 +7,7 @@ import {
   getTripCitiesController,
   createTripCityController,
   deleteTripCityController,
+  updateTripCityController,
 } from './trips.controller';
 import { Router } from 'express';
 
@@ -18,6 +19,7 @@ tripsRouter.post('/', createTripController);
 tripsRouter.get('/:tripId/cities', getTripCitiesController);
 tripsRouter.post('/:tripId/cities', createTripCityController);
 tripsRouter.delete('/cities/:cityId', deleteTripCityController);
+tripsRouter.patch('/cities/:cityId', updateTripCityController);
 
 tripsRouter.get('/:id', getTrip);
 tripsRouter.patch('/:id', updateTripController);

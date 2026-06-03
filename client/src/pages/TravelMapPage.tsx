@@ -1,16 +1,45 @@
 import { useEffect, useState } from 'react';
-import { Alert, Box, CircularProgress, Typography } from '@mui/material';
-import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
+import {
+  Alert,
+  Box,
+  CircularProgress,
+  MenuItem,
+  TextField,
+  Typography,
+} from '@mui/material';
+import { MapContainer, Marker, Popup, Polyline, TileLayer, useMap } from 'react-leaflet';
 import { LatLngBounds } from 'leaflet';
 import {
   getTravelMapCities,
   type TravelMapCity,
 } from '../shared/api';
 
+type MapAutoFitProps = {
+  bounds: LatLngBounds | null;
+};
+
+function MapAutoFit({ bounds }: MapAutoFitProps) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!bounds) {
+      return;
+    }
+
+    map.fitBounds(bounds, {
+      padding: [60, 60],
+      maxZoom: 6,
+    });
+  }, [bounds, map]);
+
+  return null;
+}
+
 export function TravelMapPage() {
   const [cities, setCities] = useState<TravelMapCity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedTripId, setSelectedTripId] = useState('all');
 
   useEffect(() => {
     let ignore = false;
@@ -43,18 +72,62 @@ export function TravelMapPage() {
     };
   }, []);
 
-  const bounds =
-  cities.length > 0
-    ? new LatLngBounds(
-        cities.map((city) => [city.lat, city.lng] as [number, number])
+  const trips = Array.from(
+    new Map(cities.map((city) => [city.trip.id, city.trip])).values()
+  );
+  
+  const visibleCities =
+    selectedTripId === 'all'
+      ? cities
+      : cities.filter((city) => city.trip.id === selectedTripId);
+
+      const bounds =
+      visibleCities.length > 0
+        ? new LatLngBounds(
+            visibleCities.map((city) => [city.lat, city.lng] as [number, number])
+          )
+        : null;
+
+    const routeLines = Object.values(
+      visibleCities.reduce<Record<string, TravelMapCity[]>>((acc, city) => {
+        if (!acc[city.trip.id]) {
+          acc[city.trip.id] = [];
+        }
+    
+        acc[city.trip.id].push(city);
+    
+        return acc;
+      }, {})
+    )
+      .map((tripCities) =>
+        tripCities
+          .slice()
+          .sort((a, b) => a.order - b.order)
+          .map((city) => [city.lat, city.lng] as [number, number])
       )
-    : null;
+      .filter((positions) => positions.length >= 2);
 
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>
         Карта путешествий
       </Typography>
+
+      <TextField
+  select
+  label="Показать маршрут"
+  value={selectedTripId}
+  onChange={(event) => setSelectedTripId(event.target.value)}
+  sx={{ mb: 2, minWidth: 280 }}
+>
+  <MenuItem value="all">Все поездки</MenuItem>
+
+  {trips.map((trip) => (
+    <MenuItem key={trip.id} value={trip.id}>
+      {trip.title}
+    </MenuItem>
+  ))}
+</TextField>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -73,12 +146,18 @@ export function TravelMapPage() {
   }}
   style={{ height: '70vh', width: '100%' }}
 >
+<MapAutoFit bounds={bounds} />
           <TileLayer
             attribution='&copy; OpenStreetMap contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
-          {cities.map((city) => (
+{selectedTripId !== 'all' &&
+  routeLines.map((positions, index) => (
+    <Polyline key={index} positions={positions} />
+  ))}
+
+          {visibleCities.map((city) => (
             <Marker key={city.id} position={[city.lat, city.lng]}>
               <Popup>
                 <strong>{city.name}</strong>

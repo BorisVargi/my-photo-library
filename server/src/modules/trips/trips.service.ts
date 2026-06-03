@@ -4,6 +4,7 @@ import type {
   CreateTripInput,
   UpdateTripInput,
   CreateTripCityInput,
+  UpdateTripCityInput,
 } from './trips.schemas';
 
 export async function getAllTrips(userId: string) {
@@ -135,6 +136,7 @@ export async function createTripCity(
       country: data.country ?? null,
       lat: data.lat,
       lng: data.lng,
+      order: data.order ?? 0,
     },
   });
 }
@@ -159,6 +161,37 @@ export async function deleteTripCity(cityId: string, userId: string) {
   return prisma.tripCity.delete({
     where: {
       id: cityId,
+    },
+  });
+}
+
+export async function updateTripCity(
+  cityId: string,
+  userId: string,
+  data: UpdateTripCityInput
+) {
+  const city = await prisma.tripCity.findFirst({
+    where: {
+      id: cityId,
+      trip: {
+        userId,
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!city) {
+    throw new Error('City not found');
+  }
+
+  return prisma.tripCity.update({
+    where: {
+      id: cityId,
+    },
+    data: {
+      order: data.order,
     },
   });
 }

@@ -83,6 +83,7 @@ export type TripCity = {
   country: string | null;
   lat: number;
   lng: number;
+  order: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -92,6 +93,7 @@ export type CreateTripCityPayload = {
   country?: string | null;
   lat: number;
   lng: number;
+  order?: number;
 };
 
 export type TravelMapCity = TripCity & {
@@ -400,6 +402,23 @@ export async function deleteTripCity(cityId: string): Promise<void> {
 
   if (!response.ok) {
     throw new Error('Failed to delete trip city');
+  }
+}
+
+export async function updateTripCity(
+  cityId: string,
+  payload: {
+    order?: number;
+  }
+): Promise<void> {
+  const response = await fetch(`${API_URL}/trips/cities/${cityId}`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to update trip city');
   }
 }
 

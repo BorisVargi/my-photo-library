@@ -13,6 +13,7 @@ import {
   createTripCity,
   deleteTripCity,
   getTripCities,
+  updateTripCity,
   type TripCity,
 } from '../../shared/api';
 
@@ -86,6 +87,7 @@ export function TripCitiesManager({ tripId }: TripCitiesManagerProps) {
         country: trimmedCountry || null,
         lat: parsedLat,
         lng: parsedLng,
+        order: cities.length,
       });
 
       setCities((currentCities) => [...currentCities, data.city]);
@@ -97,6 +99,47 @@ export function TripCitiesManager({ tripId }: TripCitiesManagerProps) {
       setError('Не удалось добавить город');
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function handleMoveCity(cityId: string, direction: 'up' | 'down') {
+    const currentIndex = cities.findIndex((city) => city.id === cityId);
+  
+    if (currentIndex === -1) {
+      return;
+    }
+  
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+  
+    if (targetIndex < 0 || targetIndex >= cities.length) {
+      return;
+    }
+  
+    const nextCities = [...cities];
+  
+    const currentCity = nextCities[currentIndex];
+    const targetCity = nextCities[targetIndex];
+  
+    nextCities[currentIndex] = targetCity;
+    nextCities[targetIndex] = currentCity;
+  
+    const reorderedCities = nextCities.map((city, index) => ({
+      ...city,
+      order: index,
+    }));
+  
+    setCities(reorderedCities);
+  
+    try {
+      setError('');
+  
+      await Promise.all([
+        updateTripCity(currentCity.id, { order: targetIndex }),
+        updateTripCity(targetCity.id, { order: currentIndex }),
+      ]);
+    } catch {
+      setError('Не удалось изменить порядок городов');
+      setCities(cities);
     }
   }
 
@@ -179,7 +222,10 @@ export function TripCitiesManager({ tripId }: TripCitiesManagerProps) {
         <CircularProgress size={24} />
       ) : cities.length ? (
         <Stack spacing={1}>
-          {cities.map((city) => (
+          {cities
+  .slice()
+  .sort((a, b) => a.order - b.order)
+  .map((city, index) => (
             <Box
               key={city.id}
               sx={{
@@ -204,9 +250,25 @@ export function TripCitiesManager({ tripId }: TripCitiesManagerProps) {
                 </Typography>
               </Box>
 
-              <Button color="error" onClick={() => handleDeleteCity(city.id)}>
-                Удалить
-              </Button>
+              <Stack direction="row" spacing={1}>
+  <Button
+    onClick={() => handleMoveCity(city.id, 'up')}
+    disabled={index === 0}
+  >
+    ↑
+  </Button>
+
+  <Button
+    onClick={() => handleMoveCity(city.id, 'down')}
+    disabled={index === cities.length - 1}
+  >
+    ↓
+  </Button>
+
+  <Button color="error" onClick={() => handleDeleteCity(city.id)}>
+    Удалить
+  </Button>
+</Stack>
             </Box>
           ))}
         </Stack>

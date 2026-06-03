@@ -24,7 +24,14 @@ export const createTripCitySchema = z.object({
   country: z.string().optional().nullable(),
   lat: z.coerce.number(),
   lng: z.coerce.number(),
+  order: z.coerce.number().optional(),
 });
+
+export const updateTripCitySchema = z.object({
+  order: z.coerce.number().optional(),
+});
+
+export type UpdateTripCityInput = z.infer<typeof updateTripCitySchema>;
 
 export const updateTripSchema = createTripSchema
   .partial()
