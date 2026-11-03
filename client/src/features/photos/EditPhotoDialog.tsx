@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Alert,
   Box,
@@ -41,17 +41,26 @@ export function EditPhotoDialog({
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
+  const [previousInputs, setPreviousInputs] = useState<{
+    open: boolean;
+    photo: Photo;
+  } | null>(null);
 
-    setTitle(photo.title ?? '');
-    setCaption(photo.caption ?? '');
-    setVisibility(photo.visibility);
-    setTakenAt(formatDateForInput(photo.takenAt));
-    setError('');
-  }, [open, photo]);
+  if (
+    previousInputs === null ||
+    previousInputs.open !== open ||
+    previousInputs.photo !== photo
+  ) {
+    setPreviousInputs({ open, photo });
+
+    if (open) {
+      setTitle(photo.title ?? '');
+      setCaption(photo.caption ?? '');
+      setVisibility(photo.visibility);
+      setTakenAt(formatDateForInput(photo.takenAt));
+      setError('');
+    }
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
